@@ -24,7 +24,7 @@ function print_help
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
     echo -e "  cheat -a FILE:\tAdd FILE to cheat sheet directory"
     echo -e "  cheat -k:\t\tList all available cheat sheets"
-    echo -e "  cheat -k KEYWORK:\tGrep for all files containing KEYWORD\n"
+    echo -e "  cheat -k KEYWORD:\tGrep for all files containing KEYWORD\n"
 
     echo "Cheat sheets are kept in the ~/.cheat directory.  If you don't have"
     echo "read/write permissions for that directory, you won't be able to make"
