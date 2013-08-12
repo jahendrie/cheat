@@ -1,0 +1,64 @@
+================================================================================
+    cheat.sh        |   version 0.8     |   GPL v3 (see LICENSE)    | 2013-08-11
+    James Hendrie   |   hendrie dot james at gmail dot com
+================================================================================
+
+TOC:
+    1.  What is this?
+    2.  How do I use it?
+    3.  Who made it?
+
+
+1.  What is this?
+
+    'cheat' is a cheat-sheet script for people who are too impatient to browse
+    the manual page for a given program.  It's well-suited for those who might
+    use a program only occasionally, and need only brief reminders on the
+    'important bits'; the cliff-notes version of man pages, if you will.
+
+    This particular version, written as a Bash script, is a reimplementation of
+    a Python script originally written by Chris Lane.  The other version is the
+    'main' version; this is the off-shoot.
+
+
+2.  How do I use it?
+
+    Using this script is straightforward enough, in the typical UNIX/Linux
+    fashion:
+
+    cheat [OPTION] FILE[S]
+
+    Options:
+        -a or --add:        Add a text file to the cheat sheet directory
+        -k, -l or --list:   Grep for a keyword or list all available
+        -h or --help:       List the help
+        --version:          List version and author info
+
+
+    Examples:
+
+        cheat tar:          Display the cheat sheet for tar
+        cheat -k:           List all available cheat sheets (in ~/.cheat)
+        cheat -k tar:       Grep for all cheat sheets with 'tar' in the filename
+        cheat -k tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
+        cheat -a foo:       Add 'foo' to the cheat sheet directory
+        cheat -a foo bar:   Add both 'foo' and 'bar' to the cheat sheet dir
+
+
+    By default (and as of this version, there is no option to change this), all
+    files added to the cheat sheet directory must be plain text files.  If they
+    end with the extension .txt, that will be stripped from the filename.
+    Further, to conserve space, all files will be automatically gzipped after
+    they've been added to the directory.
+
+
+
+3.  Who made it?
+
+    This version:   James Hendrie
+                        hendrie dot james at gmail dot com
+                        https://github.com/jahendrie
+
+    Main version:   Chris Lane
+                        chris at chris-allen-lane dot com
+                        https://github.com/chrisallenlane
