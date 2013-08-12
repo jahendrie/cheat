@@ -13,11 +13,15 @@ DOC=doc
 DATA=data
 MANPATH=$(PREFIX)/share/man/man1
 DATAPATH=$(PREFIX)/share/cheat
+SHEETPATH=$(DATAPATH)/sheets
 
 install:
-	install -D -g 0 -o 0 -m 0755 $(SRC)/$(SRCFILE) $(PREFIX)/bin/$(DESTFILE)
-	install -v -D -g 0 -o 0 -m 0644 LICENSE $(DATAPATH)/LICENSE
-	install -v -D -g 0 -o 0 -m 0644 README $(DATAPATH)/README
+	install -D -m 0755 $(SRC)/$(SRCFILE) $(PREFIX)/bin/$(DESTFILE)
+	mkdir -p $(DATAPATH)
+	cp -rv $(DATA) $(SHEETPATH)
+	gzip -9 $(SHEETPATH)/*
+	install -v -D -m 0644 LICENSE $(DATAPATH)/LICENSE
+	install -v -D -m 0644 README $(DATAPATH)/README
 	#install -D -g 0 -o 0 -m 0644 $(DOC)/cheat.1 $(MANPATH)/cheat.1
 
 uninstall:
