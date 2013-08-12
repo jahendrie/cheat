@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 0.8     |   GPL v3 (see LICENSE)    | 2013-08-11
+    cheat.sh        |   version 0.9     |   GPL v3 (see LICENSE)    | 2013-08-11
     James Hendrie   |   hendrie dot james at gmail dot com
 ================================================================================
 
@@ -48,8 +48,6 @@ TOC:
     By default (and as of this version, there is no option to change this), all
     files added to the cheat sheet directory must be plain text files.  If they
     end with the extension .txt, that will be stripped from the filename.
-    Further, to conserve space, all files will be automatically gzipped after
-    they've been added to the directory.
 
 
 

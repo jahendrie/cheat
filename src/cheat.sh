@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.8     |       GPL v3      |   2013-08-11
+#   cheat.sh        |   version 0.9     |       GPL v3      |   2013-08-11
 #   James Hendrie   |   hendrie dot james at gmail dot com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -35,7 +35,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.8, James Hendrie: hendrie.james at gmail.com"
+    echo "cheat.sh, version 0.9, James Hendrie: hendrie.james at gmail.com"
     echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
 }
 
@@ -47,6 +47,7 @@ function add_cheat_sheet
         exit 1
     fi
 
+    ##  If the file ends in .txt, we're going to rename it
     if [ `ls $1 | tail -c5` = ".txt" ] || [ `ls $1 | tail -c5` = ".TXT" ]; then
         extension=$(ls $1 | tail -c5)
         newName=$(echo $1 | sed s/$extension//g)
@@ -55,12 +56,7 @@ function add_cheat_sheet
     fi
 
     ##  Add the file to the directory
-    if [ `ls $1 | tail -c4` = '.gz' ]; then
-        cp "$1" $cheatDir
-    else
-        cp "$1" "$cheatDir/$newName"
-        gzip -9 "$cheatDir/$newName"
-    fi
+    cp "$1" "$cheatDir/$newName"
 
     echo "$1 added to cheat sheet directory"
 }
