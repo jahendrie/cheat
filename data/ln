@@ -1,2 +1,0 @@
-To create a symlink:
-ln -s path/to/the/target/directory name-of-symlink
