@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 0.9     |   GPL v3 (see LICENSE)    | 2013-08-11
+    cheat.sh        |   version 0.91    |   GPL v3 (see LICENSE)    | 2013-08-11
     James Hendrie   |   hendrie dot james at gmail dot com
 ================================================================================
 
@@ -30,6 +30,7 @@ TOC:
 
     Options:
         -a or --add:        Add a text file to the cheat sheet directory
+        -A:                 Add and compress (gzip) a text file
         -k, -l or --list:   Grep for a keyword or list all available
         -h or --help:       List the help
         --version:          List version and author info
@@ -43,6 +44,7 @@ TOC:
         cheat -k tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
         cheat -a foo:       Add 'foo' to the cheat sheet directory
         cheat -a foo bar:   Add both 'foo' and 'bar' to the cheat sheet dir
+        cheat -A *.txt:     Add and compress all .txt files in current dir
 
 
     By default (and as of this version, there is no option to change this), all

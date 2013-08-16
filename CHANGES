@@ -2,3 +2,6 @@
 
 2013-08-12  0.9     Script no longer compresses files added with -a/--add.  It
                     still lists and reads compressed (.gz) files as before.
+
+2013-08-16  0.91    Added an option (-A) to compress as before, though the
+                    script still doesn't compress by default.

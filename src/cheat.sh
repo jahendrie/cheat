@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.9     |       GPL v3      |   2013-08-11
+#   cheat.sh        |   version 0.91    |       GPL v3      |   2013-08-11
 #   James Hendrie   |   hendrie dot james at gmail dot com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -11,6 +11,8 @@
 sysCheatDir=/usr/share/cheat
 cheatDir=~/.cheat
 
+##  Variable to determine if they want to compress, 0 by default
+compress=0
 
 function print_help
 {
@@ -18,11 +20,13 @@ function print_help
     echo -e "\nOptions:"
     echo -e "  -k or -l or --list:\tGrep for keyword(s)"
     echo -e "  -a or --add:\t\tAdd file(s)"
+    echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
     echo -e "  -h or --help:\t\tThis help screen"
 
     echo -e "\nExamples:"
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
     echo -e "  cheat -a FILE:\tAdd FILE to cheat sheet directory"
+    echo -e "  cheat -a *.txt:\tAdd all .txt files in pwd to cheat directory"
     echo -e "  cheat -k:\t\tList all available cheat sheets"
     echo -e "  cheat -k KEYWORD:\tGrep for all files containing KEYWORD\n"
 
@@ -35,10 +39,13 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.9, James Hendrie: hendrie.james at gmail.com"
+    echo "cheat.sh, version 0.91, James Hendrie: hendrie.james at gmail.com"
     echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
 }
 
+##  args:
+##      $1: The file we're adding
+##      $2: Whether to gzip or not (1 is yes)
 function add_cheat_sheet
 {
     ##  Check to make sure it exists
@@ -56,7 +63,12 @@ function add_cheat_sheet
     fi
 
     ##  Add the file to the directory
-    cp "$1" "$cheatDir/$newName"
+    if [ ! $2 -eq 1 ]; then
+        cp "$1" "$cheatDir/$newName"
+    else
+        cp "$1" "$cheatDir/$newName"
+        gzip -9 "$cheatDir/$newName"
+    fi
 
     echo "$1 added to cheat sheet directory"
 }
@@ -98,7 +110,6 @@ if [ "$1" = "--version" ]; then
     exit 0
 fi
 
-
 ##  If they want to add stuff
 if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
     if [ "$#" -lt 2 ]; then
@@ -107,17 +118,35 @@ if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
     fi
 
     currentArg=1
-
     for arg in $@; do
         if [ $currentArg -ne 1 ]; then
-            add_cheat_sheet "$arg"
+            add_cheat_sheet "$arg" $compress
         fi
 
         let currentArg=$[ $currentArg + 1 ]
     done
 
     exit 0
+fi
 
+##  If they want to add and compress stuff
+if [ "$1" = "-A" ]; then
+    if [ "$#" -lt 2 ]; then
+        echo "ERROR:  No files specified" 1>&2
+        exit 1
+    fi
+
+    currentArg=1
+    compress=1
+    for arg in $@; do
+        if [ $currentArg -ne 1 ]; then
+            add_cheat_sheet "$arg" $compress
+        fi
+
+        let currentArg=$[ $currentArg + 1 ]
+    done
+
+    exit 0
 fi
 
 

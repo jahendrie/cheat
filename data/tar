@@ -1,4 +1,4 @@
-To extract an uncompressed archive:
+To extract an uncompressed archive: 
 tar -xvf /path/to/foo.tar
 
 To extract a .gz archive:

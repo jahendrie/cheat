@@ -13,7 +13,7 @@ convert original-image.jpg -resize 100x converted-image.png
 To resize all of the images within a directory:
 To implement a for loop:
 for file in `ls original/image/path/`;
-do new_path=${file%.*};
-new_file=`basename $new_path`;
-convert $file -resize 150 conerted/image/path/$new_file.png;
+    do new_path=${file%.*};
+    new_file=`basename $new_path`;
+    convert $file -resize 150 conerted/image/path/$new_file.png;
 done
