@@ -5,3 +5,6 @@
 
 2013-08-16  0.91    Added an option (-A) to compress as before, though the
                     script still doesn't compress by default.
+
+2013-08-22  0.95    Added the -e / --edit option to edit cheat sheets.  Idea
+                    borrowed from user evaryont (https://github.com/evaryont)

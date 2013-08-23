@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.91    |       GPL v3      |   2013-08-11
+#   cheat.sh        |   version 0.95    |       GPL v3      |   2013-08-11
 #   James Hendrie   |   hendrie dot james at gmail dot com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -14,11 +14,42 @@ cheatDir=~/.cheat
 ##  Variable to determine if they want to compress, 0 by default
 compress=0
 
+
+function find_editor
+{
+    FOUND=0
+    editors=( 'vim' 'vi' 'nano' 'ed' 'ex' )
+
+    if [ "$EDITOR" == "" ]; then
+        for e in "${editors[@]}"; do
+            which "$e" &> /dev/null
+
+            if [ $? = 0 ]; then
+                export EDITOR="$e"
+                let FOUND=1
+                break
+            fi
+        done
+
+    else
+        let FOUND=1
+
+    fi
+
+
+    if [ $FOUND = 0 ]; then
+        echo 'ERROR:  Cannot find an editor.  Use $EDITOR environment variable.'
+        exit 1
+    fi
+}
+
+
 function print_help
 {
     echo "Usage:  cheat [OPTION] FILE[s]"
     echo -e "\nOptions:"
     echo -e "  -k or -l or --list:\tGrep for keyword(s)"
+    echo -e "  -e or --edit:\t\tEdit a cheat file using EDITOR env variable"
     echo -e "  -a or --add:\t\tAdd file(s)"
     echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
     echo -e "  -h or --help:\t\tThis help screen"
@@ -39,7 +70,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.91, James Hendrie: hendrie.james at gmail.com"
+    echo "cheat.sh, version 0.95, James Hendrie: hendrie.james at gmail.com"
     echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
 }
 
@@ -117,13 +148,8 @@ if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
         exit 1
     fi
 
-    currentArg=1
-    for arg in $@; do
-        if [ $currentArg -ne 1 ]; then
-            add_cheat_sheet "$arg" $compress
-        fi
-
-        let currentArg=$[ $currentArg + 1 ]
+    for arg in ${@:2}; do
+        add_cheat_sheet "$arg" $compress
     done
 
     exit 0
@@ -136,15 +162,34 @@ if [ "$1" = "-A" ]; then
         exit 1
     fi
 
-    currentArg=1
     compress=1
-    for arg in $@; do
-        if [ $currentArg -ne 1 ]; then
-            add_cheat_sheet "$arg" $compress
-        fi
-
-        let currentArg=$[ $currentArg + 1 ]
+    for arg in ${@:2}; do
+        add_cheat_sheet "$arg" $compress
     done
+
+    exit 0
+fi
+
+
+##  If they want to edit a file
+if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
+    if [ "$#" -lt 2 ]; then
+        echo "ERROR:  No file files specified" 1>&2
+        exit 1
+    fi
+
+    ##  Find an editor for the user
+    find_editor
+
+    ##  Assemble the collection of files to edit
+    filesToEdit=()
+    for arg in ${@:2}; do
+        filesToEdit+=("$cheatDir/$arg")
+    done
+
+    ##  Edit 'em
+    "$EDITOR" ${filesToEdit[@]}
+
 
     exit 0
 fi
@@ -163,20 +208,15 @@ if [ "$1" = "-k" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ]; then
         exit 0
     fi
 
-    currentArg=1
-
     ##  Grep for every subject they listed as an arg
-    for arg in $@; do
-        if [ $currentArg -ne 1 ]; then
-            echo  "$arg:"
-            ls $cheatDir | grep -i "$arg" | while read LINE; do
-                newLine=$(echo "$LINE" | sed 's/.gz//g')
-                echo  "  $newLine"
-            done
-            echo ""
-        fi
+    for arg in ${@:2}; do
+        echo  "$arg:"
+        ls $cheatDir | grep -i "$arg" | while read LINE; do
+            newLine=$(echo "$LINE" | sed 's/.gz//g')
+            echo  "  $newLine"
+        done
+        echo ""
 
-        let currentArg=$[ $currentArg + 1 ]
     done
 
     exit 0
