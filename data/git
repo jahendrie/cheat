@@ -1,6 +1,27 @@
-To set your identify:
+# To set your identify:
 git config --global user.name "John Doe"
 git config --global user.email johndoe@example.com
 
-To enable color:
+# To enable color:
 git config --global color.ui true
+
+# To stage all changes for commit:
+git add --all
+
+# To commit staged changes
+git commit -m "Your commit message"
+
+# To push to the tracked master branch:
+git push origin master
+
+# To push to a specified repository:
+git push git@github.com:username/project.git
+
+# To sync a fork with the master repo:
+git remote add upstream git@github.com:name/repo.git    # Set a new repo
+git remote -v                                           # Confirm new remote repo
+git fetch upstream                                      # Get branches
+git branch -va                                          # List local - remote branches
+git checkout master                                     # Checpkout local master branch
+git merge upstream/master                               # Merge remote into local repo
+
