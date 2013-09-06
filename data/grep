@@ -1,0 +1,5 @@
+# Basic:
+grep pattern file
+
+# Recursively grep for string <pattern> in folder:
+grep -R pattern folder
