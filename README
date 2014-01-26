@@ -35,6 +35,7 @@ TOC:
         -k, -l or --list:   Grep for a keyword or list all available
         -h or --help:       List the help
         --version:          List version and author info
+        -u or --update      Update cheat sheets
 
 
     Examples:

@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.95    |       GPL v3      |   2013-08-11
+#   cheat.sh        |   version 0.96    |       GPL v3      |   2013-08-11
 #   James Hendrie   |   hendrie dot james at gmail dot com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -13,6 +13,13 @@ cheatDir=~/.cheat
 
 ##  Variable to determine if they want to compress, 0 by default
 compress=0
+
+##  The cheat sheet tarball file name
+CSFILENAME="cheatsheets.tar.bz2"
+
+##  Web location(s) of cheat sheets
+WEB_PATH_1="http://www.someplacedumb.net/misc"
+LOCATION_1="$WEB_PATH_1/$CSFILENAME"
 
 
 function find_editor
@@ -53,6 +60,7 @@ function print_help
     echo -e "  -a or --add:\t\tAdd file(s)"
     echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
     echo -e "  -h or --help:\t\tThis help screen"
+    echo -e "  -u or --update:\tUpdate cheat sheets (lazy method)"
 
     echo -e "\nExamples:"
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
@@ -70,7 +78,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.95, James Hendrie: hendrie.james at gmail.com"
+    echo "cheat.sh, version 0.96, James Hendrie: hendrie.james at gmail.com"
     echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
 }
 
@@ -102,6 +110,70 @@ function add_cheat_sheet
     fi
 
     echo "$1 added to cheat sheet directory"
+}
+
+
+##  args:
+##      $1: Whether or not to overwrite all files.  0 = update only,
+##          1 = overwrite all files with versions in the archive
+function update_cheat_sheets
+{
+    if [ ! -d /tmp ] || [ ! -w /tmp ]; then
+        echo "ERROR:  Write access to /tmp required to update cheat sheets" 1>&2
+        exit 1
+    fi
+
+    ##  Create temporary directory and change over to it
+    TEMP_DIR=$(mktemp -d)
+    CUR_LOC=$PWD
+    cd "$TEMP_DIR"
+    
+    ##  Check for download programs; if found, use them to download file
+    which wget &> /dev/null
+    if [ $? -ne 0 ]; then
+        which curl &> /dev/null
+        if [ $? -ne 0 ]; then
+            echo "ERROR:  Either wget or curl required to update" 1>&2
+            rm -r "$TEMP_DIR"
+            exit 1
+        else
+            curl -sO "$LOCATION_1"
+        fi
+    else
+        wget -q "$LOCATION_1"
+    fi
+
+    ##  Check to make sure the file exists
+    if [ ! -r $CSFILENAME ]; then
+        echo "ERROR:  Could not read from $TEMP_DIR/$CSFILENAME.  Aborting" 1>&2
+        rm -r "$TEMP_DIR"
+        exit 1
+    fi
+
+    ##  Check to make sure the file is a tarball
+    if [ ! $(file -b $CSFILENAME | cut -f1 -d' ') = "bzip2" ]; then
+        echo "File $CSFILENAME is not a bzip2 file.  Aborting" 1>&2
+        rm -r "$TEMP_DIR"
+    fi
+
+    ##  Extract file, then remove it
+    tar -xf "$CSFILENAME"
+    rm "$CSFILENAME"
+
+    ##  If we're playing it safe, update cheat dir.  Otherwise, straight copy
+    if [ $1 -eq 0 ]; then
+        FILES_COPIED=$(cp -vu ./* "$cheatDir" | wc -l)
+    else
+        FILES_COPIED=$(cp -v ./* "$cheatDir" | wc -l)
+    fi
+
+    ##  Go back to where the user started, remove temp dir and all its contents
+    cd "$CUR_LOC"
+    rm -r "$TEMP_DIR"
+
+    ##  Echo progress
+    echo "$FILES_COPIED files updated"
+
 }
 
 
@@ -138,6 +210,12 @@ fi
 ##  If they're looking for version/author info
 if [ "$1" = "--version" ]; then
     print_version
+    exit 0
+fi
+
+##  If they want to update their cheat sheets (safe mode)
+if [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
+    update_cheat_sheets 0
     exit 0
 fi
 
