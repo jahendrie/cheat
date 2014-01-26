@@ -12,6 +12,7 @@ DESTFILE=cheat
 DOC=doc
 DATA=data
 MANPATH=$(PREFIX)/share/man/man1
+MANFILE=cheat.1.gz
 DATAPATH=$(PREFIX)/share/cheat
 SHEETPATH=$(DATAPATH)/sheets
 
@@ -21,9 +22,9 @@ install:
 	cp -rv $(DATA) $(SHEETPATH)
 	install -v -D -m 0644 LICENSE $(DATAPATH)/LICENSE
 	install -v -D -m 0644 README $(DATAPATH)/README
-	#install -D -g 0 -o 0 -m 0644 $(DOC)/cheat.1 $(MANPATH)/cheat.1
+	install -D -g 0 -o 0 -m 0644 $(DOC)/$(MANFILE) $(MANPATH)/$(MANFILE)
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(DESTFILE)
 	rm -rf $(DATAPATH)
-	#rm -f $(MANPATH)/cheat.1
+	rm -f $(MANPATH)/$(MANFILE)

@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.96    |       GPL v3      |   2013-08-11
+#   cheat.sh        |   version 0.97    |       GPL v3      |   2014-01-26
 #   James Hendrie   |   hendrie dot james at gmail dot com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -60,7 +60,8 @@ function print_help
     echo -e "  -a or --add:\t\tAdd file(s)"
     echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
     echo -e "  -h or --help:\t\tThis help screen"
-    echo -e "  -u or --update:\tUpdate cheat sheets (lazy method)"
+    echo -e "  -u or --update:\tUpdate cheat sheets (safe, lazy method)"
+    echo -e "  -U\t\t\tUpdate/overwrite cheat sheets (non-safe)"
 
     echo -e "\nExamples:"
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
@@ -78,7 +79,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.96, James Hendrie: hendrie.james at gmail.com"
+    echo "cheat.sh, version 0.97, James Hendrie: hendrie.james at gmail.com"
     echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
 }
 
@@ -219,6 +220,12 @@ if [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
     exit 0
 fi
 
+##  If they want to update cheat sheets (non-safe mode)
+if [ "$1" = "-U" ]; then
+    update_cheat_sheets 1
+    exit 0
+fi
+
 ##  If they want to add stuff
 if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
     if [ "$#" -lt 2 ]; then
@@ -300,22 +307,54 @@ if [ "$1" = "-k" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ]; then
     exit 0
 fi
 
-##  The full file name
-fileName="$cheatDir/$1"
 
-##  Make sure it exists
-if [ ! -e "$fileName" ]; then
-    if [ -e "$fileName.gz" ]; then
-        fileName="$fileName.gz"
+#==============================     MAIN    ====================================
+
+##  If an exact match for the user's query exists, display it
+if [ -r `echo "$cheatDir/$1" | sed 's/.gz//g'` ]; then
+    echo -e "$cheatDir/$1\n"
+    if [ `echo "$cheatDir/$1" | tail -c4` = ".gz" ]; then
+        gunzip --stdout "$cheatDir/$1" | cat >& 1
     else
-        echo "ERROR:  File does not exist:  $fileName" 1>&2
-        exit 1
+        cat "$cheatDir/$1"
     fi
+
+    exit 0
 fi
 
-##  If the file exists, cat it out
-if [ `ls "$fileName" | tail -c4` = ".gz" ]; then
-    gunzip --stdout "$fileName" | cat >& 1
+##  Otherwise, grab the number of 'hits' given by the user's query
+RESULTS=$(ls "$cheatDir" | grep -i $1 | wc -l)
+
+##  If there are no results, inform the user and let the program quit
+if [ $RESULTS -eq 0 ]; then
+    echo "ERROR:  No file matching pattern '$1' in $cheatDir" 1>&2
+    exit 1
+
+##  If there is 1 result, display that cheat sheet
+elif [ $RESULTS -eq 1 ]; then
+    fileName=$(ls "$cheatDir" | grep -i "$1")
+    echo -e "$cheatDir/$fileName\n"
+
+    if [ `echo "$fileName" | tail -c4` = ".gz" ]; then
+        gunzip --stdout "$cheatDir/$fileName" | cat >& 1
+    else
+        cat "$cheatDir/$fileName"
+    fi
+
+##  If there's more than 1, display to the user his/her possibilities
+elif [ $RESULTS -gt 1 ]; then
+    for arg in ${@:1}; do
+        echo "$arg:"
+        ls "$cheatDir" | grep -i "$arg" | while read LINE; do
+            echo "  $LINE" | sed 's/.gz//g'
+        done
+        echo ""
+    done
+
+##  I felt weird about not having an 'else' here.  Don't judge me.
 else
-    cat "$fileName"
+    echo "How the hell do you have fewer than zero results?" 1>&2
+    exit 1
 fi
+
+#==============================  END MAIN    ===================================

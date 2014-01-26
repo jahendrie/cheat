@@ -1,12 +1,13 @@
 ================================================================================
-    cheat.sh        |   version 0.96    |   GPL v3 (see LICENSE)    | 2014-01-25
+    cheat.sh        |   version 0.97    |   GPL v3 (see LICENSE)    | 2014-01-26
     James Hendrie   |   hendrie dot james at gmail dot com
 ================================================================================
 
 TOC:
     1.  What is this?
-    2.  How do I use it?
-    3.  Who made it?
+    2.  Install / Uninstall
+    3.  How do I use it?
+    4.  Who made it?
 
 
 1.  What is this?
@@ -21,7 +22,17 @@ TOC:
     'main' version; this is the off-shoot.
 
 
-2.  How do I use it?
+2.  Install / Uninstall
+
+    To install this script, as root, run 'make install' from inside the top
+    directory to which you've downloaded/extracted the program; it should be the
+    same directory where you found this README file.
+
+    To uninstall the program, as root and from that same directory (or whichever
+    directory contains the Makefile), run 'make uninstall'.
+
+
+3.  How do I use it?
 
     Using this script is straightforward enough, in the typical UNIX/Linux
     fashion:
@@ -35,12 +46,14 @@ TOC:
         -k, -l or --list:   Grep for a keyword or list all available
         -h or --help:       List the help
         --version:          List version and author info
-        -u or --update      Update cheat sheets
+        -u or --update:     Update cheat sheets (safe way)
+        -U:                 Overwrite all cheat sheets with downloaded versions
 
 
     Examples:
 
-        cheat tar:          Display the cheat sheet for tar
+        cheat ap:           List all files with 'ap' in the filename; if there
+                            is only one result, it will be displayed
         cheat -k:           List all available cheat sheets (in ~/.cheat)
         cheat -k tar:       Grep for all cheat sheets with 'tar' in the filename
         cheat -k tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
@@ -55,7 +68,7 @@ TOC:
 
 
 
-3.  Who made it?
+4.  Who made it?
 
     This version:   James Hendrie
                         hendrie dot james at gmail dot com

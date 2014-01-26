@@ -11,3 +11,7 @@
 
 2014-01-25  0.96    Added an (perhaps less than elegant) update function to
                     the script.  Whatever works.
+
+2014-01-26  0.97    Added unsafe update functionality and a man page.  Also
+                    altered the way the script checks for cheat sheets; it's a
+                    bit friendlier now.
