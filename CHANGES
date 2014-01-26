@@ -8,3 +8,6 @@
 
 2013-08-22  0.95    Added the -e / --edit option to edit cheat sheets.  Idea
                     borrowed from user evaryont (https://github.com/evaryont)
+
+2014-01-25  0.96    Added an (perhaps less than elegant) update function to
+                    the script.  Whatever works.
