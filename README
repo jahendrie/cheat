@@ -1,6 +1,6 @@
 ================================================================================
-    cheat.sh        |   version 0.97    |   GPL v3 (see LICENSE)    | 2014-01-26
-    James Hendrie   |   hendrie dot james at gmail dot com
+    cheat.sh        |   version 0.98    |   GPL v3 (see LICENSE)    | 2014-03-21
+    James Hendrie   |   hendrie.james@gmail.com
 ================================================================================
 
 TOC:
@@ -43,7 +43,9 @@ TOC:
         -a or --add:        Add a text file to the cheat sheet directory
         -A:                 Add and compress (gzip) a text file
         -e or --edit:       Edit a cheat sheet, using editor in $EDITOR variable
-        -k, -l or --list:   Grep for a keyword or list all available
+        -k:                 Grep for a keyword or list all available
+        -l or --list:       List all available cheat sheets
+        -L:                 List all cheat sheets with full paths
         -h or --help:       List the help
         --version:          List version and author info
         -u or --update:     Update cheat sheets (safe way)
@@ -54,7 +56,7 @@ TOC:
 
         cheat ap:           List all files with 'ap' in the filename; if there
                             is only one result, it will be displayed
-        cheat -k:           List all available cheat sheets (in ~/.cheat)
+        cheat -l:           List all available cheat sheets (in ~/.cheat)
         cheat -k tar:       Grep for all cheat sheets with 'tar' in the filename
         cheat -k tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
         cheat -a foo:       Add 'foo' to the cheat sheet directory
@@ -66,14 +68,27 @@ TOC:
     files added to the cheat sheet directory must be plain text files.  If they
     end with the extension .txt, that will be stripped from the filename.
 
+    There are a couple of useful variables for people who use this script a lot:
+    DEFAULT_CHEAT_DIR and CHEATPATH.
+
+    DEFAULT_CHEAT_DIR is the directory in which cheat sheets are stored by 
+    default.  This is set to $HOME/.cheat if left unspecified by the user.
+
+    CHEATPATH is similar to the PATH variable, except it's used for cheat
+    sheets.  If you're referencing cheat sheets from multiple directories, 
+    you'll want to make use of this environment variable.  If this variable is
+    not set by the user, it's populated by DEFAULT_CHEAT_DIR.  If the user does
+    set this variable, it's up to them to include every directory in which cheat
+    sheets are kept, as DEFAULT_CHEAT_DIR is not automatically added to the
+    CHEATPATH variable.
 
 
 4.  Who made it?
 
     This version:   James Hendrie
-                        hendrie dot james at gmail dot com
+                        hendrie.james@gmail.com
                         https://github.com/jahendrie
 
     Main version:   Chris Lane
-                        chris at chris-allen-lane dot com
+                        chris@chris-allen-lane.com
                         https://github.com/chrisallenlane

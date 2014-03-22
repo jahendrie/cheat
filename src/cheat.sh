@@ -1,15 +1,24 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.97    |       GPL v3      |   2014-01-26
-#   James Hendrie   |   hendrie dot james at gmail dot com
+#   cheat.sh        |   version 0.98    |       GPL v3      |   2014-03-21
+#   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
 #       https://github.com/chrisallenlane
 ################################################################################
 
-#   Cheat directory.  This is where the cheatsheet text files go.
-sysCheatDir=/usr/share/cheat
-cheatDir=~/.cheat
+##  Default 'system' directory for cheat sheets
+CHEAT_SYS_DIR=/usr/share/cheat
+
+##  User directory for cheat sheets
+if [[ "$DEFAULT_CHEAT_DIR" = "" ]]; then
+    DEFAULT_CHEAT_DIR="${HOME}/.cheat"
+fi
+
+##  Cheat path
+if [[ "$CHEATPATH" = "" ]]; then
+    CHEATPATH="${DEFAULT_CHEAT_DIR}"
+fi
 
 ##  Variable to determine if they want to compress, 0 by default
 compress=0
@@ -55,7 +64,9 @@ function print_help
 {
     echo "Usage:  cheat [OPTION] FILE[s]"
     echo -e "\nOptions:"
-    echo -e "  -k or -l or --list:\tGrep for keyword(s)"
+    echo -e "  -k:\t\t\tGrep for keyword(s)"
+    echo -e "  -l or --list:\t\tList all cheat sheets"
+    echo -e "  -L:\t\t\tList all cheat sheets with full paths"
     echo -e "  -e or --edit:\t\tEdit a cheat file using EDITOR env variable"
     echo -e "  -a or --add:\t\tAdd file(s)"
     echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
@@ -70,17 +81,16 @@ function print_help
     echo -e "  cheat -k:\t\tList all available cheat sheets"
     echo -e "  cheat -k KEYWORD:\tGrep for all files containing KEYWORD\n"
 
-    echo "Cheat sheets are kept in the ~/.cheat directory.  If you don't have"
-    echo "read/write permissions for that directory, you won't be able to make"
-    echo -e "use of this script.\n"
+    echo "By default, cheat sheets are kept in the ~/.cheat directory.  See the"
+    echo -e "README file for more details.\n"
 
     echo "This script is still in its infancy, so beware loose ends."
 }
 
 function print_version
 {
-    echo "cheat.sh, version 0.97, James Hendrie: hendrie.james at gmail.com"
-    echo -e "Original version by Chris Lane: chris at chris-allen-lane dot com"
+    echo "cheat.sh, version 0.98, James Hendrie: hendrie.james@gmail.com"
+    echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
 ##  args:
@@ -104,10 +114,10 @@ function add_cheat_sheet
 
     ##  Add the file to the directory
     if [ ! $2 -eq 1 ]; then
-        cp "$1" "$cheatDir/$newName"
+        cp "$1" "$DEFAULT_CHEAT_DIR/$newName"
     else
-        cp "$1" "$cheatDir/$newName"
-        gzip -9 "$cheatDir/$newName"
+        cp "$1" "$DEFAULT_CHEAT_DIR/$newName"
+        gzip -9 "$DEFAULT_CHEAT_DIR/$newName"
     fi
 
     echo "$1 added to cheat sheet directory"
@@ -163,9 +173,9 @@ function update_cheat_sheets
 
     ##  If we're playing it safe, update cheat dir.  Otherwise, straight copy
     if [ $1 -eq 0 ]; then
-        FILES_COPIED=$(cp -vu ./* "$cheatDir" | wc -l)
+        FILES_COPIED=$(cp -vu ./* "$DEFAULT_CHEAT_DIR" | wc -l)
     else
-        FILES_COPIED=$(cp -v ./* "$cheatDir" | wc -l)
+        FILES_COPIED=$(cp -v ./* "$DEFAULT_CHEAT_DIR" | wc -l)
     fi
 
     ##  Go back to where the user started, remove temp dir and all its contents
@@ -180,15 +190,15 @@ function update_cheat_sheets
 
 ##  Check to make sure that their cheat directory exists.  If it does, great.
 ##  If not, exit and tell them.
-if [ ! -d "$cheatDir" ]; then
-    if [ ! -d "$sysCheatDir" ]; then
+if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
+    if [ ! -d "$CHEAT_SYS_DIR" ]; then
         echo "ERROR:  No cheat directory found." 1>&2
         echo -e "\tConsult the help (cheat -h) for more info" 1>&2
         exit 1
     else
-        cp -r "$sysCheatDir" "$cheatDir"
-        if [ ! -d "$cheatDir" ]; then
-            echo "ERROR:  Cannot write to $cheatDir" 1>&2
+        cp -r "$CHEAT_SYS_DIR" "$DEFAULT_CHEAT_DIR"
+        if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
+            echo "ERROR:  Cannot write to $DEFAULT_CHEAT_DIR" 1>&2
             exit 1
         fi
     fi
@@ -259,7 +269,7 @@ fi
 ##  If they want to edit a file
 if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
     if [ "$#" -lt 2 ]; then
-        echo "ERROR:  No file files specified" 1>&2
+        echo "ERROR:  No files specified" 1>&2
         exit 1
     fi
 
@@ -268,8 +278,22 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
 
     ##  Assemble the collection of files to edit
     filesToEdit=()
+    existing=0
     for arg in ${@:2}; do
-        filesToEdit+=("$cheatDir/$arg")
+        while read F; do
+
+            ##  Check and see if we get any hits on the 'edit' search
+            if [[ -e "${F}/${arg}" ]]; then
+                let existing=$(( $existing + 1 ))
+                filesToEdit+=("${F}/${arg}")
+            fi
+        done < <(echo "$CHEATPATH" | sed 's/:/\n/g')
+
+        ##  If we didn't get any hits, create one in default dir
+        if [[ $existing -eq 0 ]]; then
+            filesToEdit+=("${DEFAULT_CHEAT_DIR}/${arg}")
+        fi
+
     done
 
     ##  Edit 'em
@@ -281,27 +305,47 @@ fi
 
 
 ##  If they're searching for keywords
-if [ "$1" = "-k" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ]; then
+if [[ "$1" = "-k" ]]; then
 
-    ##  If all they typed was 'cheat -k', list everything (minus .gz extension)
-    if [ $# -eq 1 ]; then
-        ls "$cheatDir" | while read LINE; do
-            newLine=$(echo "$LINE" | sed 's/.gz//g')
-            echo  "$newLine"
-        done
-
-        exit 0
+    ##  If they did not supply a keyword, tell them
+    if [[ $# -eq 1 ]]; then
+        echo "ERROR:  Keyword(s) required" 1>&2
+        exit 1
     fi
 
     ##  Grep for every subject they listed as an arg
     for arg in ${@:2}; do
-        echo  "$arg:"
-        ls $cheatDir | grep -i "$arg" | while read LINE; do
-            newLine=$(echo "$LINE" | sed 's/.gz//g')
-            echo  "  $newLine"
-        done
-        echo ""
+        echo -e "$arg:\n"
 
+        echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls "$DIR" | grep -i "$arg" | while read LINE; do
+                echo "  $LINE" | sed 's/.gz//g'
+            done
+
+        done
+
+    done
+
+    exit 0
+fi
+
+
+##  If they want to list everything
+if [[ "$1" = "-l" ]] || [[ "$1" = "--list" ]]; then
+    echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+        ls -1 "$DIR"
+    done
+
+    exit 0
+fi
+
+
+##  List everything with full paths
+if [[ "$1" = "-L" ]]; then
+    echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+        ls "$DIR" | while read LINE; do
+            echo "${DIR}/${LINE}"
+        done
     done
 
     exit 0
@@ -310,45 +354,64 @@ fi
 
 #==============================     MAIN    ====================================
 
-##  If an exact match for the user's query exists, display it
-if [ -r `echo "$cheatDir/$1" | sed 's/.gz//g'` ]; then
-    echo -e "$cheatDir/$1\n"
-    if [ `echo "$cheatDir/$1" | tail -c4` = ".gz" ]; then
-        gunzip --stdout "$cheatDir/$1" | cat >& 1
-    else
-        cat "$cheatDir/$1"
+RESULTS=0
+declare RESULTS_ARRAY=()
+
+while read DIR; do
+    ##  If we hit an 'exact' match
+    if [[ -e "$DIR/$1" ]]; then
+        echo -e "$1\n"
+        cat "$DIR/$1"
+        exit 0
+    elif [[ -e "$DIR/${1}.gz" ]]; then
+        echo -e "$1\n"
+        gunzip --stdout "$DIR/${1}.gz" | cat >& 1
+        exit 0
     fi
 
-    exit 0
-fi
+    ##   grab the number of 'hits' given by the user's query
+    DIR_RESULTS=$(ls "$DIR" | grep -i "$1" | wc -l)
 
-##  Otherwise, grab the number of 'hits' given by the user's query
-RESULTS=$(ls "$cheatDir" | grep -i $1 | wc -l)
+    if [[ $DIR_RESULTS -gt 0 ]]; then
+        while read R; do
+            RESULTS_ARRAY+=("${R}:${DIR}")
+        done < <(ls "$DIR" | grep -i "$1")
+    fi
+
+    let RESULTS=$(( $RESULTS + $DIR_RESULTS ))
+
+done < <(echo "$CHEATPATH" | sed 's/:/\n/g')
+
 
 ##  If there are no results, inform the user and let the program quit
 if [ $RESULTS -eq 0 ]; then
-    echo "ERROR:  No file matching pattern '$1' in $cheatDir" 1>&2
+    echo "ERROR:  No file matching pattern '$1' in $CHEATPATH" 1>&2
     exit 1
 
 ##  If there is 1 result, display that cheat sheet
 elif [ $RESULTS -eq 1 ]; then
-    fileName=$(ls "$cheatDir" | grep -i "$1")
-    echo -e "$cheatDir/$fileName\n"
+    for R in ${RESULTS_ARRAY[@]}; do
+        fileName="$(echo "$R" | cut -f1 -d':')"
+        dirName="$(echo "$R" | cut -f2 -d':')"
 
-    if [ `echo "$fileName" | tail -c4` = ".gz" ]; then
-        gunzip --stdout "$cheatDir/$fileName" | cat >& 1
-    else
-        cat "$cheatDir/$fileName"
-    fi
+        echo -e "$fileName\n"
+
+        if [ `echo "$fileName" | tail -c4` = ".gz" ]; then
+            gunzip --stdout "$dirName/$fileName" | cat >& 1
+        else
+            cat "$dirName/$fileName"
+        fi
+    done
 
 ##  If there's more than 1, display to the user his/her possibilities
 elif [ $RESULTS -gt 1 ]; then
     for arg in ${@:1}; do
         echo "$arg:"
-        ls "$cheatDir" | grep -i "$arg" | while read LINE; do
-            echo "  $LINE" | sed 's/.gz//g'
-        done
         echo ""
+
+        for R in ${RESULTS_ARRAY[@]}; do
+            echo "  $R" | cut -f1 -d':'
+        done
     done
 
 ##  I felt weird about not having an 'else' here.  Don't judge me.
@@ -358,3 +421,5 @@ else
 fi
 
 #==============================  END MAIN    ===================================
+
+exit 0

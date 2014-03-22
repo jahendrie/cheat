@@ -15,3 +15,7 @@
 2014-01-26  0.97    Added unsafe update functionality and a man page.  Also
                     altered the way the script checks for cheat sheets; it's a
                     bit friendlier now.
+
+2014-03-21  0.98    Added DEFAULT_CHEAT_DIR and CHEATPATH functionality, as well
+                    as changing the behavior of -l and --list to list all cheat
+                    sheets.  Added -L; does the same but with full paths.
