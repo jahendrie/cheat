@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.98    |       GPL v3      |   2014-03-21
+#   cheat.sh        |   version 0.99    |       GPL v3      |   2014-04-05
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -8,7 +8,11 @@
 ################################################################################
 
 ##  Default 'system' directory for cheat sheets
-CHEAT_SYS_DIR=/usr/share/cheat
+if [[ -d "/usr/local/share/cheat" ]]; then
+    CHEAT_SYS_DIR=/usr/local/share/cheat
+else
+    CHEAT_SYS_DIR=/usr/share/cheat
+fi
 
 ##  User directory for cheat sheets
 if [[ "$DEFAULT_CHEAT_DIR" = "" ]]; then
@@ -89,7 +93,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 0.98, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version 0.99, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
@@ -188,23 +192,6 @@ function update_cheat_sheets
 }
 
 
-##  Check to make sure that their cheat directory exists.  If it does, great.
-##  If not, exit and tell them.
-if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
-    if [ ! -d "$CHEAT_SYS_DIR" ]; then
-        echo "ERROR:  No cheat directory found." 1>&2
-        echo -e "\tConsult the help (cheat -h) for more info" 1>&2
-        exit 1
-    else
-        cp -r "$CHEAT_SYS_DIR" "$DEFAULT_CHEAT_DIR"
-        if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
-            echo "ERROR:  Cannot write to $DEFAULT_CHEAT_DIR" 1>&2
-            exit 1
-        fi
-    fi
-fi
-
-
 ##  Too few args, tsk tsk
 if [ $# -lt 1 ]; then
     echo "ERROR:  Too few arguments" 1>&2
@@ -222,6 +209,24 @@ fi
 if [ "$1" = "--version" ]; then
     print_version
     exit 0
+fi
+
+
+##  Check to make sure that their cheat directory exists.  If it does, great.
+##  If not, exit and tell them.
+if [ ! -d "$CHEATPATH" ]; then
+    if [ ! -d "$CHEAT_SYS_DIR" ] && [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
+        echo "ERROR:  No cheat directory found." 1>&2
+        echo -e "\tConsult the help (cheat -h) for more info" 1>&2
+        exit 1
+    else
+        cp -r "$CHEAT_SYS_DIR" "$DEFAULT_CHEAT_DIR"
+        CHEATPATH="$DEFAULT_CHEAT_DIR"
+        if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
+            echo "ERROR:  Cannot write to $DEFAULT_CHEAT_DIR" 1>&2
+            exit 1
+        fi
+    fi
 fi
 
 ##  If they want to update their cheat sheets (safe mode)

@@ -4,8 +4,7 @@
 #	Technically, no 'making' occurs, since it's just a shell script, but
 #	let us not quibble over trivialities such as these.
 ################################################################################
-ROOTPATH=
-PREFIX=$(ROOTPATH)/usr
+PREFIX=/usr
 SRC=src
 SRCFILE=cheat.sh
 DESTFILE=cheat
@@ -18,11 +17,11 @@ SHEETPATH=$(DATAPATH)/sheets
 
 install:
 	install -D -m 0755 $(SRC)/$(SRCFILE) $(PREFIX)/bin/$(DESTFILE)
-	mkdir -p $(DATAPATH)
+	mkdir -vp $(DATAPATH)
 	cp -rv $(DATA) $(SHEETPATH)
 	install -v -D -m 0644 LICENSE $(DATAPATH)/LICENSE
 	install -v -D -m 0644 README $(DATAPATH)/README
-	install -D -g 0 -o 0 -m 0644 $(DOC)/$(MANFILE) $(MANPATH)/$(MANFILE)
+	install -D -m 0644 $(DOC)/$(MANFILE) $(MANPATH)/$(MANFILE)
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(DESTFILE)
