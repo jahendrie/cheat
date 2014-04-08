@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 0.99    |       GPL v3      |   2014-04-05
+#   cheat.sh        |   version 1.0     |       GPL v3      |   2014-04-08
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -20,7 +20,7 @@ if [[ "$DEFAULT_CHEAT_DIR" = "" ]]; then
 fi
 
 ##  Cheat path
-if [[ "$CHEATPATH" = "" ]]; then
+if [[ ! -n "$CHEATPATH" ]]; then
     CHEATPATH="${DEFAULT_CHEAT_DIR}"
 fi
 
@@ -68,7 +68,9 @@ function print_help
 {
     echo "Usage:  cheat [OPTION] FILE[s]"
     echo -e "\nOptions:"
-    echo -e "  -k:\t\t\tGrep for keyword(s)"
+    echo -e "  -k:\t\t\tGrep for keyword(s) in filenames"
+    echo -e "  -g:\t\t\tGrep for keyword(s) inside the files"
+    echo -e "  -G:\t\t\tSame as above, but list full paths to files"
     echo -e "  -l or --list:\t\tList all cheat sheets"
     echo -e "  -L:\t\t\tList all cheat sheets with full paths"
     echo -e "  -e or --edit:\t\tEdit a cheat file using EDITOR env variable"
@@ -82,18 +84,15 @@ function print_help
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
     echo -e "  cheat -a FILE:\tAdd FILE to cheat sheet directory"
     echo -e "  cheat -a *.txt:\tAdd all .txt files in pwd to cheat directory"
-    echo -e "  cheat -k:\t\tList all available cheat sheets"
-    echo -e "  cheat -k KEYWORD:\tGrep for all files containing KEYWORD\n"
+    echo -e "  cheat -k KEYWORD:\tGrep for all filenames containing KEYWORD\n"
 
     echo "By default, cheat sheets are kept in the ~/.cheat directory.  See the"
-    echo -e "README file for more details.\n"
-
-    echo "This script is still in its infancy, so beware loose ends."
+    echo -e "README file for more details."
 }
 
 function print_version
 {
-    echo "cheat.sh, version 0.99, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version 1.0, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
@@ -192,6 +191,44 @@ function update_cheat_sheets
 }
 
 
+##  Greps for keywords inside of files
+##  ARGS
+##      1           Whether to list full paths to files.  0 = don't, 1 = do.
+function grepper
+{
+    ##  For every directory in the CHEATPATH variable
+    for arg in ${@:2}; do
+        if [[ $1 -eq 0 ]]; then
+            echo -e "$arg:"
+        fi
+
+        echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+
+
+            ##  Change to directory with cheat sheets
+            cd "$DIR"
+
+            ##  Grep through all of the cheat sheets
+            ls | while read LINE; do
+                grep -i "$arg" "$LINE" &> /dev/null
+                if [[ $? -eq 0 ]]; then
+                    if [[ $1 -eq 0 ]]; then
+                        echo "    $LINE"
+                    else
+                        echo "$PWD/$LINE"
+                    fi
+                fi
+            done
+
+            ##  Go back to previous directory
+            cd - &> /dev/null
+
+        done
+    done
+
+}
+
+
 ##  Too few args, tsk tsk
 if [ $# -lt 1 ]; then
     echo "ERROR:  Too few arguments" 1>&2
@@ -214,7 +251,7 @@ fi
 
 ##  Check to make sure that their cheat directory exists.  If it does, great.
 ##  If not, exit and tell them.
-if [ ! -d "$CHEATPATH" ]; then
+if [ ! -n "$CHEATPATH" ]; then
     if [ ! -d "$CHEAT_SYS_DIR" ] && [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
         echo "ERROR:  No cheat directory found." 1>&2
         echo -e "\tConsult the help (cheat -h) for more info" 1>&2
@@ -331,6 +368,34 @@ if [[ "$1" = "-k" ]]; then
 
     done
 
+    exit 0
+fi
+
+
+##  If they're grepping for words inside the files
+if [[ "$1" = "-g" ]]; then
+
+    ##  If they did not supply a keyword, tell them
+    if [[ $# -eq 1 ]]; then
+        echo "ERROR:  Keyword(s) required" 1>&2
+        exit 1
+    fi
+
+    grepper 0 ${@:2}
+    
+    exit 0
+fi
+
+if [[ "$1" = "-G" ]]; then
+
+    ##  If they did not supply a keyword, tell them
+    if [[ $# -eq 1 ]]; then
+        echo "ERROR:  Keyword(s) required" 1>&2
+        exit 1
+    fi
+
+    grepper 1 ${@:2}
+    
     exit 0
 fi
 

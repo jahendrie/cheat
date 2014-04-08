@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 0.99    |   GPL v3 (see LICENSE)    | 2014-04-05
+    cheat.sh        |   version 1.0     |   GPL v3 (see LICENSE)    | 2014-04-08
     James Hendrie   |   hendrie.james@gmail.com
 ================================================================================
 
@@ -43,7 +43,9 @@ TOC:
         -a or --add:        Add a text file to the cheat sheet directory
         -A:                 Add and compress (gzip) a text file
         -e or --edit:       Edit a cheat sheet, using editor in $EDITOR variable
-        -k:                 Grep for a keyword or list all available
+        -k:                 Grep for keyword(s) in file names
+        -g:                 Grep for keyword(s) inside file text
+        -G:                 Same as above, but list full paths if found
         -l or --list:       List all available cheat sheets
         -L:                 List all cheat sheets with full paths
         -h or --help:       List the help

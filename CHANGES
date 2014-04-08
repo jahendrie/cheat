@@ -23,3 +23,6 @@
 2014-04-05  0.99    Addressed at least one, possible two issues spotted by user
                     hkdobrev (help functionality issue, install issue).  Added a
                     temporary workaround for the third (cheat_sys_dir location)
+
+2014-04-08  1.0     Fixed a serious bug with how the default CHEATPATH is set.
+                    Also added a grepping feature.
