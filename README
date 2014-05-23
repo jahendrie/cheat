@@ -46,7 +46,7 @@ TOC:
         -k:                 Grep for keyword(s) in file names
         -g:                 Grep for keyword(s) inside file text
         -G:                 Same as above, but list full paths if found
-        -l or --list:       List all available cheat sheets
+        -l or --link:       Link a file instead of copying it to the cheat dir
         -L:                 List all cheat sheets with full paths
         -h or --help:       List the help
         --version:          List version and author info
@@ -58,20 +58,17 @@ TOC:
 
         cheat ap:           List all files with 'ap' in the filename; if there
                             is only one result, it will be displayed
-        cheat -l:           List all available cheat sheets (in ~/.cheat)
+        cheat -k:           List all available cheat sheets (in ~/.cheat)
         cheat -k tar:       Grep for all cheat sheets with 'tar' in the filename
         cheat -k tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
         cheat -a foo:       Add 'foo' to the cheat sheet directory
         cheat -a foo bar:   Add both 'foo' and 'bar' to the cheat sheet dir
         cheat -A *.txt:     Add and compress all .txt files in current dir
+        cheat -l foo.png    Create a link to foo.png in the cheat directory
 
 
-    By default (and as of this version, there is no option to change this), all
-    files added to the cheat sheet directory must be plain text files.  If they
-    end with the extension .txt, that will be stripped from the filename.
-
-    There are a couple of useful variables for people who use this script a lot:
-    DEFAULT_CHEAT_DIR and CHEATPATH.
+    There are a few useful variables for people who use this script a lot:
+    DEFAULT_CHEAT_DIR, CHEATPATH, CHEAT_IMAGE_VIEWER and CHEAT_PDF_VIEWER.
 
     DEFAULT_CHEAT_DIR is the directory in which cheat sheets are stored by 
     default.  This is set to $HOME/.cheat if left unspecified by the user.
@@ -83,6 +80,11 @@ TOC:
     set this variable, it's up to them to include every directory in which cheat
     sheets are kept, as DEFAULT_CHEAT_DIR is not automatically added to the
     CHEATPATH variable.
+
+    CHEAT_IMAGE_VIEWER is the program which is used to display image files, and
+    CHEAT_PDF_VIEWER is the program which will display PDFs.  These variables
+    are optional, but if you can't get the script to display images/PDFs, set
+    them to the programs you want.
 
 
 4.  Who made it?

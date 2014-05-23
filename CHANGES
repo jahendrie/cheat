@@ -20,9 +20,21 @@
                     as changing the behavior of -l and --list to list all cheat
                     sheets.  Added -L; does the same but with full paths.
 
-2014-04-05  0.99    Addressed at least one, possible two issues spotted by user
+2014-04-05  0.99    Addressed at least one, possibly two issues spotted by user
                     hkdobrev (help functionality issue, install issue).  Added a
                     temporary workaround for the third (cheat_sys_dir location)
 
 2014-04-08  1.0     Fixed a serious bug with how the default CHEATPATH is set.
                     Also added a grepping feature.
+
+2014-05-22  1.1     Fixed a small but embarassing bug -- specifically, the one
+                    which meant you couldn't actually add files with the -a
+                    option.  Also added capability to use viewers for image
+                    files and PDFs; the CHEAT_IMAGE_VIEWER and CHEAT_PDF_VIEWER
+                    environment variables are used for this, and if not found,
+                    the script tries to find a handful of popular viewers on the
+                    user's system instead.  Also added the ability to symlink
+                    files rather than copying them to the cheat dir, should the
+                    user so desire; this replaces the -l (list) option with -l
+                    (link); if you want the old behavior, just use -k without
+                    any options.

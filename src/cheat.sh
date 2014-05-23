@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.0     |       GPL v3      |   2014-04-08
+#   cheat.sh        |   version 1.1     |       GPL v3      |   2014-05-22
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -15,12 +15,12 @@ else
 fi
 
 ##  User directory for cheat sheets
-if [[ "$DEFAULT_CHEAT_DIR" = "" ]]; then
+if [[ -z $DEFAULT_CHEAT_DIR ]]; then
     DEFAULT_CHEAT_DIR="${HOME}/.cheat"
 fi
 
 ##  Cheat path
-if [[ ! -n "$CHEATPATH" ]]; then
+if [[ -z $CHEATPATH ]]; then
     CHEATPATH="${DEFAULT_CHEAT_DIR}"
 fi
 
@@ -35,32 +35,55 @@ WEB_PATH_1="http://www.someplacedumb.net/misc"
 LOCATION_1="$WEB_PATH_1/$CSFILENAME"
 
 
+function find_image_viewer
+{
+    viewers=( 'eog' 'viewnior' 'feh' 'xv' 'display' 'gpicview' 'gthumb' \
+        'gwenview' )
+
+    for v in "${viewers[@]}"; do
+        if which "$v" > /dev/null; then
+            export CHEAT_IMAGE_VIEWER="$v"
+            return 0
+        fi
+    done
+
+
+    echo -n "ERROR:  Cannot find an image viewer; use CHEAT_IMAGE_VIEWER "
+    echo "environment variable"
+    exit 1
+}
+
+
+function find_pdf_viewer
+{
+    viewers=( 'evince' 'xpdf' 'qpdfview' 'mupdf' 'okular' )
+
+    for v in "${viewers[@]}"; do
+        if which "$v" > /dev/null; then
+            export CHEAT_PDF_VIEWER="$v"
+            return 0
+        fi
+    done
+
+    echo -n "ERROR:  Cannot find a PDF viewer; use CHEAT_PDF_VIEWER environment"
+    echo "variable"
+    exit 1
+}
+
+
 function find_editor
 {
-    FOUND=0
-    editors=( 'vim' 'vi' 'nano' 'ed' 'ex' )
+    editors=( 'vim' 'vi' 'nano' 'emacs' 'ed' 'ex' 'gedit' 'kate' 'geany' )
 
-    if [ "$EDITOR" == "" ]; then
-        for e in "${editors[@]}"; do
-            which "$e" &> /dev/null
+    for e in "${editors[@]}"; do
+        if which "$e" > /dev/null; then
+            export EDITOR="$e"
+            return 0
+        fi
+    done
 
-            if [ $? = 0 ]; then
-                export EDITOR="$e"
-                let FOUND=1
-                break
-            fi
-        done
-
-    else
-        let FOUND=1
-
-    fi
-
-
-    if [ $FOUND = 0 ]; then
-        echo 'ERROR:  Cannot find an editor.  Use $EDITOR environment variable.'
-        exit 1
-    fi
+    echo 'ERROR:  Cannot find an editor.  Use EDITOR environment variable.'
+    exit 1
 }
 
 
@@ -71,7 +94,7 @@ function print_help
     echo -e "  -k:\t\t\tGrep for keyword(s) in filenames"
     echo -e "  -g:\t\t\tGrep for keyword(s) inside the files"
     echo -e "  -G:\t\t\tSame as above, but list full paths to files"
-    echo -e "  -l or --list:\t\tList all cheat sheets"
+    echo -e "  -l or --link:\t\tLink to a file instead of copying it"
     echo -e "  -L:\t\t\tList all cheat sheets with full paths"
     echo -e "  -e or --edit:\t\tEdit a cheat file using EDITOR env variable"
     echo -e "  -a or --add:\t\tAdd file(s)"
@@ -92,7 +115,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 1.0, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version 1.1, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
@@ -110,21 +133,35 @@ function add_cheat_sheet
     ##  If the file ends in .txt, we're going to rename it
     if [ `ls $1 | tail -c5` = ".txt" ] || [ `ls $1 | tail -c5` = ".TXT" ]; then
         extension=$(ls $1 | tail -c5)
-        newName=$(echo $1 | sed s/$extension//g)
+        newName="$(basename "$1")"
+        newName="$(echo "$newName" | sed s/$extension//g)"
     else
-        newName=$1
+        newName="$(basename "$1")"
     fi
 
     ##  Add the file to the directory
     if [ ! $2 -eq 1 ]; then
-        cp "$1" "$DEFAULT_CHEAT_DIR/$newName"
+        cp -v "$1" "$DEFAULT_CHEAT_DIR/$newName"
     else
-        cp "$1" "$DEFAULT_CHEAT_DIR/$newName"
-        gzip -9 "$DEFAULT_CHEAT_DIR/$newName"
+        cp -v "$1" "$DEFAULT_CHEAT_DIR/$newName"
+        gzip -v -9 "$DEFAULT_CHEAT_DIR/$newName"
+    fi
+}
+
+
+##  Args:
+##      1   Filename
+function add_rich_media
+{
+    if [[ ! -e "$1" ]]; then
+        echo "ERROR:  File does not exist:  $1" 1>&2
+        exit 1
     fi
 
-    echo "$1 added to cheat sheet directory"
+    ##  Copy the file
+    cp -v "$1" "$DEFAULT_CHEAT_DIR/$(basename "$1")"
 }
+
 
 
 ##  args:
@@ -165,7 +202,7 @@ function update_cheat_sheets
     fi
 
     ##  Check to make sure the file is a tarball
-    if [ ! $(file -b $CSFILENAME | cut -f1 -d' ') = "bzip2" ]; then
+    if [ ! $(file -bL $CSFILENAME | cut -f1 -d' ') = "bzip2" ]; then
         echo "File $CSFILENAME is not a bzip2 file.  Aborting" 1>&2
         rm -r "$TEMP_DIR"
     fi
@@ -229,6 +266,35 @@ function grepper
 }
 
 
+##  VIEW FILE
+##      args:
+##          1   The full file name, including path
+function view_file
+{
+    ##  Text files
+    if file -bL "$1" | grep text > /dev/null; then
+        cat "$1"
+    elif file -bL "$1" | grep gzip > /dev/null; then
+        gunzip --stdout "$dirName/$fileName" | cat >& 1
+
+    ##  Image files
+    elif file -bL "$1" | grep image > /dev/null; then
+        if [[ -z $CHEAT_IMAGE_VIEWER ]]; then
+            find_image_viewer
+        fi
+        (nohup $CHEAT_IMAGE_VIEWER "$1" &) &> /dev/null
+
+    ##  PDFs
+    elif file -bL "$1" | grep PDF > /dev/null; then
+        if [[ -z $CHEAT_PDF_VIEWER ]]; then
+            find_pdf_viewer
+        fi
+        (nohup $CHEAT_PDF_VIEWER "$1" &) &> /dev/null
+    fi
+
+}
+
+
 ##  Too few args, tsk tsk
 if [ $# -lt 1 ]; then
     echo "ERROR:  Too few arguments" 1>&2
@@ -285,8 +351,12 @@ if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
         exit 1
     fi
 
-    for arg in ${@:2}; do
-        add_cheat_sheet "$arg" $compress
+    for arg in "${@:2}"; do
+        if file -bL "$arg" | grep text > /dev/null; then
+            add_cheat_sheet "$arg" $compress
+        else
+            add_rich_media "$arg"
+        fi
     done
 
     exit 0
@@ -300,8 +370,12 @@ if [ "$1" = "-A" ]; then
     fi
 
     compress=1
-    for arg in ${@:2}; do
-        add_cheat_sheet "$arg" $compress
+    for arg in "${@:2}"; do
+        if file -bL "$arg" | grep text > /dev/null; then
+            add_cheat_sheet "$arg" $compress
+        else
+            echo "ERROR:  Cannot add rich media '$arg' with GZIP compression"
+        fi
     done
 
     exit 0
@@ -316,7 +390,9 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
     fi
 
     ##  Find an editor for the user
-    find_editor
+    if [[ -z $EDITOR ]]; then
+        find_editor
+    fi
 
     ##  Assemble the collection of files to edit
     filesToEdit=()
@@ -326,8 +402,12 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
 
             ##  Check and see if we get any hits on the 'edit' search
             if [[ -e "${F}/${arg}" ]]; then
-                let existing=$(( $existing + 1 ))
-                filesToEdit+=("${F}/${arg}")
+                if file -b "${F}/${arg}" | grep text > /dev/null; then
+                    let existing=$(( $existing + 1 ))
+                    filesToEdit+=("${F}/${arg}")
+                else
+                    echo "WARNING:  Not a text file:  '$arg'"
+                fi
             fi
         done < <(echo "$CHEATPATH" | sed 's/:/\n/g')
 
@@ -349,10 +429,13 @@ fi
 ##  If they're searching for keywords
 if [[ "$1" = "-k" ]]; then
 
-    ##  If they did not supply a keyword, tell them
+    ##  If they did not supply a keyword, list everything
     if [[ $# -eq 1 ]]; then
-        echo "ERROR:  Keyword(s) required" 1>&2
-        exit 1
+        echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls -1 "$DIR"
+        done
+
+        exit 0
     fi
 
     ##  Grep for every subject they listed as an arg
@@ -401,9 +484,16 @@ fi
 
 
 ##  If they want to list everything
-if [[ "$1" = "-l" ]] || [[ "$1" = "--list" ]]; then
-    echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
-        ls -1 "$DIR"
+if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
+    if [[ $# -lt 2 ]]; then
+        echo "ERROR:  No files specified" 1>&2
+        exit 1
+    fi
+
+    for arg in "${@:2}"; do
+        if [[ -e "$arg" ]]; then
+            ln -sv "$arg" "$DEFAULT_CHEAT_DIR/$(basename "$arg")"
+        fi
     done
 
     exit 0
@@ -466,11 +556,7 @@ elif [ $RESULTS -eq 1 ]; then
 
         echo -e "$fileName\n"
 
-        if [ `echo "$fileName" | tail -c4` = ".gz" ]; then
-            gunzip --stdout "$dirName/$fileName" | cat >& 1
-        else
-            cat "$dirName/$fileName"
-        fi
+        view_file "$dirName/$fileName"
     done
 
 ##  If there's more than 1, display to the user his/her possibilities
