@@ -483,7 +483,7 @@ if [[ "$1" = "-G" ]]; then
 fi
 
 
-##  If they want to list everything
+##  If they want to link something
 if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
     if [[ $# -lt 2 ]]; then
         echo "ERROR:  No files specified" 1>&2
@@ -492,7 +492,7 @@ if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
 
     for arg in "${@:2}"; do
         if [[ -e "$arg" ]]; then
-            ln -sv "$arg" "$DEFAULT_CHEAT_DIR/$(basename "$arg")"
+            ln -sv "$(readlink -f "$arg")" "$DEFAULT_CHEAT_DIR"
         fi
     done
 
