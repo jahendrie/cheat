@@ -68,7 +68,8 @@ TOC:
 
 
     There are a few useful variables for people who use this script a lot:
-    DEFAULT_CHEAT_DIR, CHEATPATH, CHEAT_IMAGE_VIEWER and CHEAT_PDF_VIEWER.
+    DEFAULT_CHEAT_DIR, CHEATPATH, CHEAT_TEXT_VIEWER, CHEAT_IMAGE_VIEWER and
+    CHEAT_PDF_VIEWER.
 
     DEFAULT_CHEAT_DIR is the directory in which cheat sheets are stored by 
     default.  This is set to $HOME/.cheat if left unspecified by the user.
