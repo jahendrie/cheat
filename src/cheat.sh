@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.1     |       GPL v3      |   2014-05-22
+#   cheat.sh        |   version 1.2     |       GPL v3      |   2014-09-17
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -12,6 +12,11 @@ if [[ -d "/usr/local/share/cheat" ]]; then
     CHEAT_SYS_DIR=/usr/local/share/cheat
 else
     CHEAT_SYS_DIR=/usr/share/cheat
+fi
+
+##  Default cheat viewer program
+if [[ -z $CHEAT_TEXT_VIEWER ]]; then
+    CHEAT_TEXT_VIEWER="cat"
 fi
 
 ##  User directory for cheat sheets
@@ -115,7 +120,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 1.1, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version 1.2, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
@@ -273,9 +278,9 @@ function view_file
 {
     ##  Text files
     if file -bL "$1" | grep text > /dev/null; then
-        cat "$1"
+        "$CHEAT_TEXT_VIEWER" "$1"
     elif file -bL "$1" | grep gzip > /dev/null; then
-        gunzip --stdout "$dirName/$fileName" | cat >& 1
+        gunzip --stdout "$dirName/$fileName" | "$CHEAT_TEXT_VIEWER" >& 1
 
     ##  Image files
     elif file -bL "$1" | grep image > /dev/null; then
@@ -521,11 +526,11 @@ while read DIR; do
     ##  If we hit an 'exact' match
     if [[ -e "$DIR/$1" ]]; then
         echo -e "$1\n"
-        cat "$DIR/$1"
+        "$CHEAT_TEXT_VIEWER" "$DIR/$1"
         exit 0
     elif [[ -e "$DIR/${1}.gz" ]]; then
         echo -e "$1\n"
-        gunzip --stdout "$DIR/${1}.gz" | cat >& 1
+        gunzip --stdout "$DIR/${1}.gz" | "$CHEAT_TEXT_VIEWER" >& 1
         exit 0
     fi
 

@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 1.1     |   GPL v3 (see LICENSE)    | 2014-05-22
+    cheat.sh        |   version 1.2     |   GPL v3 (see LICENSE)    | 2014-09-17
     James Hendrie   |   hendrie.james@gmail.com
 ================================================================================
 
@@ -80,6 +80,10 @@ TOC:
     set this variable, it's up to them to include every directory in which cheat
     sheets are kept, as DEFAULT_CHEAT_DIR is not automatically added to the
     CHEATPATH variable.
+
+    CHEAT_TEXT_VIEWER is the program used to view the normal cheat sheets.  It's
+    assumed to accept text from stdin ('cat' and 'less' are good options).
+    'cat' is used by default.
 
     CHEAT_IMAGE_VIEWER is the program which is used to display image files, and
     CHEAT_PDF_VIEWER is the program which will display PDFs.  These variables

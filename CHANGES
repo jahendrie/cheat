@@ -38,3 +38,8 @@
                     user so desire; this replaces the -l (list) option with -l
                     (link); if you want the old behavior, just use -k without
                     any options.
+
+2014-09-17  1.2     Added the ability to use a program other than 'cat' to view
+                    cheat files, set in the CHEAT_TEXT_VIEWER environment
+                    variable.  If that variable doesn't exist, 'cat' is still
+                    used.
