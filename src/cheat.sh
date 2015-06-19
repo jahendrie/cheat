@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.2     |       GPL v3      |   2014-09-17
+#   cheat.sh        |   version 1.21    |       GPL v3      |   2015-06-19
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -120,7 +120,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 1.2, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version 1.21, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 

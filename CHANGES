@@ -43,3 +43,6 @@
                     cheat files, set in the CHEAT_TEXT_VIEWER environment
                     variable.  If that variable doesn't exist, 'cat' is still
                     used.
+
+
+2015-06-19  1.21    Updated the cheatsheets - cloned from main repo
