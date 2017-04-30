@@ -302,7 +302,7 @@ function view_file
 
 ##  Too few args, tsk tsk
 if [ $# -lt 1 ]; then
-    echo "ERROR:  Too few arguments" 1>&2
+    cheat -h 1>&2
     exit 1
 fi
 
