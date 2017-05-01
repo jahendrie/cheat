@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.21    |       GPL v3      |   2015-06-19
+#   cheat.sh        |   version 1.22    |       GPL v3      |   2017-05-01
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
@@ -302,8 +302,8 @@ function view_file
 
 ##  Too few args, tsk tsk
 if [ $# -lt 1 ]; then
-    cheat -h 1>&2
-    exit 1
+    print_help
+    exit 0
 fi
 
 
