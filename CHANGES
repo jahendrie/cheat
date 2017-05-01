@@ -46,3 +46,7 @@
 
 
 2015-06-19  1.21    Updated the cheatsheets - cloned from main repo
+
+
+2017-05-01  1.22    Changed how too few arguments were dealt with, as per user
+                    ilikelinux69's recommendation.
