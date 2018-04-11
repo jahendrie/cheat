@@ -5,7 +5,7 @@ cheat <command>
 cheat -e <command>
 
 # To list available cheatsheets
-cheat -l
+cheat -L
 
 # To search available cheatsheets
 cheat -s <command>
