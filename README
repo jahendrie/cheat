@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 1.22    |   GPL v3 (see LICENSE)    | 2017-05-01
+    cheat.sh        |   version 1.3     |   GPL v3 (see LICENSE)    | 2018-09-18
     James Hendrie   |   hendrie.james@gmail.com
 ================================================================================
 
@@ -52,6 +52,8 @@ TOC:
         --version:          List version and author info
         -u or --update:     Update cheat sheets (safe way)
         -U:                 Overwrite all cheat sheets with downloaded versions
+        --git:              Update sheets from main (Chris Lane) repo
+        --git-alt:          Update sheets from alt repo (mine)
 
 
     Examples:

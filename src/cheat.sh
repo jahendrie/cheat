@@ -1,11 +1,14 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.22    |       GPL v3      |   2017-05-01
+#   cheat.sh        |   version 1.3     |       GPL v3      |   2018-09-18
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
 #       https://github.com/chrisallenlane
 ################################################################################
+
+##  Script version
+VERSION="1.3"
 
 ##  Default 'system' directory for cheat sheets
 if [[ -d "/usr/local/share/cheat" ]]; then
@@ -28,6 +31,17 @@ fi
 if [[ -z $CHEATPATH ]]; then
     CHEATPATH="${DEFAULT_CHEAT_DIR}"
 fi
+
+##  Address of main git repository (Chris Allen Lane's version)
+if [[ -z $MAIN_REPO_ADDR ]]; then
+    MAIN_REPO_ADDR="https://github.com/chrisallenlane/cheat.git"
+fi
+
+##  Address of alt git repository (my version, usually out of date)
+if [[ -z $ALT_REPO_ADDR ]]; then
+    ALT_REPO_ADDR="https://github.com/jahendrie/cheat.git"
+fi
+
 
 ##  Variable to determine if they want to compress, 0 by default
 compress=0
@@ -107,6 +121,9 @@ function print_help
     echo -e "  -h or --help:\t\tThis help screen"
     echo -e "  -u or --update:\tUpdate cheat sheets (safe, lazy method)"
     echo -e "  -U\t\t\tUpdate/overwrite cheat sheets (non-safe)"
+    echo -e "  --git\t\t\tUpdate with sheets from main (Python) cheat repository"
+    echo -e "  --git-alt\t\tUpdate with sheets from alt repo (mine)"
+    echo -e "  --version\t\tPrint version and author info"
 
     echo -e "\nExamples:"
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
@@ -120,7 +137,7 @@ function print_help
 
 function print_version
 {
-    echo "cheat.sh, version 1.21, James Hendrie: hendrie.james@gmail.com"
+    echo "cheat.sh, version ${VERSION}, James Hendrie: hendrie.james@gmail.com"
     echo -e "Original version by Chris Lane: chris@chris-allen-lane.com"
 }
 
@@ -230,6 +247,52 @@ function update_cheat_sheets
     ##  Echo progress
     echo "$FILES_COPIED files updated"
 
+}
+
+
+##  Update using cheat sheets from the main branch's repository
+##  Args
+##  1   Using the main or alt repo (0 = main, 1 = alt)
+function update_cheat_sheets_git
+{
+
+    if [[ ! -d /tmp ]] || [[ ! -w /tmp ]]; then
+        echo "ERROR:  Write access to /tmp required to update cheat sheets" 1>&2
+        exit 1
+    fi
+
+    if [[ $(which git &> /dev/null) -ne 0 ]]; then
+        echo "ERROR:  Program 'git' required to update in this fashion" 1>&2
+        exit 1
+    fi
+
+    ##  Create temporary directory and change over to it
+    TEMP_DIR=$(mktemp -d)
+    CUR_LOC=$PWD
+    cd "$TEMP_DIR"
+
+    if [[ $1 -eq 0 ]]; then
+        ##  Clone the repo
+        git clone "$MAIN_REPO_ADDR" &> /dev/null
+
+        ##  Update the cheat sheets
+        CPD=$(cp -vu "./cheat/cheat/cheatsheets/"* "$DEFAULT_CHEAT_DIR" | wc -l)
+
+        ##  Subract one for __init__.py
+        CPD=$(( $CPD - 1 ))
+        rm "$DEFAULT_CHEAT_DIR/__init__.py"
+
+    elif [[ $1 -eq 1 ]]; then
+        git clone "$ALT_REPO_ADDR" &> /dev/null
+
+        ##  Update the sheets
+        CPD=$(cp -vu "./cheat/data/"* "$DEFAULT_CHEAT_DIR" | wc -l)
+    fi
+
+    ##  Finish up
+    echo "$CPD files updated"
+    cd "$CUR_LOC"
+    rm -rf "$TEMP_DIR"
 }
 
 
@@ -346,6 +409,18 @@ fi
 ##  If they want to update cheat sheets (non-safe mode)
 if [ "$1" = "-U" ]; then
     update_cheat_sheets 1
+    exit 0
+fi
+
+##  If they want to update using git (main repo)
+if [[ "$1" = "--git" ]]; then
+    update_cheat_sheets_git 0
+    exit 0
+fi
+
+##  Same, but alt repo
+if [[ "$1" = "--git-alt" ]]; then
+    update_cheat_sheets_git 1
     exit 0
 fi
 

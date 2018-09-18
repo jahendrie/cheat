@@ -50,3 +50,7 @@
 
 2017-05-01  1.22    Changed how too few arguments were dealt with, as per user
                     ilikelinux69's recommendation.
+
+2018-09-18  1.3     Updated sheets, and added a function to draw sheet updates
+                    directly from either Chris Allen Lane's repository or this
+                    one.
