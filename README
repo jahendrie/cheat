@@ -1,5 +1,5 @@
 ================================================================================
-    cheat.sh        |   version 1.3     |   GPL v3 (see LICENSE)    | 2018-09-18
+    cheat.sh        |   version 1.4     |   GPL v3 (see LICENSE)    | 2022-07-09
     James Hendrie   |   hendrie.james@gmail.com
 ================================================================================
 
@@ -18,8 +18,8 @@ TOC:
     'important bits'; the cliff-notes version of man pages, if you will.
 
     This particular version, written as a Bash script, is a reimplementation of
-    a Python script originally written by Chris Lane.  The other version is the
-    'main' version; this is the off-shoot.
+    a Python script originally written by Chris Lane (now written in Go).  The
+    other version is the 'main' version; this is the off-shoot.
 
 
 2.  Install / Uninstall
@@ -46,14 +46,14 @@ TOC:
         -k:                 Grep for keyword(s) in file names
         -g:                 Grep for keyword(s) inside file text
         -G:                 Same as above, but list full paths if found
-        -l or --link:       Link a file instead of copying it to the cheat dir
+        -s or --link:       Symlink a file instead of copying it to the cheat dir
+        -l or --list:       List all cheat sheets, without full paths
         -L:                 List all cheat sheets with full paths
         -h or --help:       List the help
         --version:          List version and author info
-        -u or --update:     Update cheat sheets (safe way)
-        -U:                 Overwrite all cheat sheets with downloaded versions
-        --git:              Update sheets from main (Chris Lane) repo
-        --git-alt:          Update sheets from alt repo (mine)
+        -u or --update:     Update the sheets using the main repo (Chris Lane's)
+        --alt-update:       Same as above, except using mine (just in case?)
+        --old-update:       Update with wget/curl, downloading from a server
 
 
     Examples:
@@ -67,26 +67,30 @@ TOC:
         cheat -a foo bar:   Add both 'foo' and 'bar' to the cheat sheet dir
         cheat -A *.txt:     Add and compress all .txt files in current dir
         cheat -l foo.png    Create a link to foo.png in the cheat directory
+        cheat -u            Update your cheat sheets from the main repo's.
 
 
     There are a few useful variables for people who use this script a lot:
-    DEFAULT_CHEAT_DIR, CHEATPATH, CHEAT_TEXT_VIEWER, CHEAT_IMAGE_VIEWER and
+    USER_CHEATSHEETS, CHEATPATH, CHEAT_PAGER, CHEAT_IMAGE_VIEWER and
     CHEAT_PDF_VIEWER.
 
-    DEFAULT_CHEAT_DIR is the directory in which cheat sheets are stored by 
-    default.  This is set to $HOME/.cheat if left unspecified by the user.
+    USER_CHEATSHEETS is the directory in which cheat sheets are stored by 
+    default.  This is set to $HOME/.local/share/cheatsheets if left unspecified
+    by the user.
 
     CHEATPATH is similar to the PATH variable, except it's used for cheat
     sheets.  If you're referencing cheat sheets from multiple directories, 
     you'll want to make use of this environment variable.  If this variable is
-    not set by the user, it's populated by DEFAULT_CHEAT_DIR.  If the user does
+    not set by the user, it's populated by USER_CHEATSHEETS.  If the user does
     set this variable, it's up to them to include every directory in which cheat
-    sheets are kept, as DEFAULT_CHEAT_DIR is not automatically added to the
-    CHEATPATH variable.
+    sheets are kept, as USER_CHEATSHEETS is not automatically added to the
+    CHEATPATH variable.  Like the PATH variable, all paths specified here must
+    be separated by colons.
 
-    CHEAT_TEXT_VIEWER is the program used to view the normal cheat sheets.  It's
+    CHEAT_PAGER is the program used to view the normal cheat sheets.  It's
     assumed to accept text from stdin ('cat' and 'less' are good options).
-    'cat' is used by default.
+    'cat' is used by default, unless the file has more lines than the terminal
+    emulator you're using, in which case it opts for 'less'.
 
     CHEAT_IMAGE_VIEWER is the program which is used to display image files, and
     CHEAT_PDF_VIEWER is the program which will display PDFs.  These variables
@@ -99,7 +103,9 @@ TOC:
     This version:   James Hendrie
                         hendrie.james@gmail.com
                         https://github.com/jahendrie
+                        https://github.com/jahendrie/cheat
 
     Main version:   Chris Lane
                         chris@chris-allen-lane.com
                         https://github.com/chrisallenlane
+                        https://github.com/cheat/cheat

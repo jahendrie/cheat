@@ -1,40 +1,46 @@
 #!/bin/bash
 ################################################################################
-#   cheat.sh        |   version 1.3     |       GPL v3      |   2018-09-18
+#   cheat.sh        |   version 1.4     |       GPL v3      |   2022-07-09
 #   James Hendrie   |   hendrie.james@gmail.com
 #
 #   This script is a reimplementation of a Python script written by Chris Lane:
 #       https://github.com/chrisallenlane
+#       (update 2022-07-09:  Apparently it's written in Go now, who knew)
+#
+#   Main cheat repo:
+#       https://github.com/cheat/cheat
+#
+#   My (bash alternative) repo, usually out of date:
+#       https://github.com/jahendrie/cheat
 ################################################################################
 
 ##  Script version
-VERSION="1.3"
+VERSION="1.4"
 
 ##  Default 'system' directory for cheat sheets
 if [[ -d "/usr/local/share/cheat" ]]; then
-    CHEAT_SYS_DIR=/usr/local/share/cheat
+    CHEAT_SYS_DIR=/usr/local/share/cheat/cheatsheets
 else
-    CHEAT_SYS_DIR=/usr/share/cheat
-fi
-
-##  Default cheat viewer program
-if [[ -z $CHEAT_TEXT_VIEWER ]]; then
-    CHEAT_TEXT_VIEWER="cat"
+    CHEAT_SYS_DIR=/usr/share/cheat/cheatsheets
 fi
 
 ##  User directory for cheat sheets
-if [[ -z $DEFAULT_CHEAT_DIR ]]; then
-    DEFAULT_CHEAT_DIR="${HOME}/.cheat"
+if [[ -z $USER_CHEATSHEETS ]]; then
+    USER_CHEATSHEETS="${HOME}/.local/share/cheat/cheatsheets"
 fi
 
 ##  Cheat path
 if [[ -z $CHEATPATH ]]; then
-    CHEATPATH="${DEFAULT_CHEAT_DIR}"
+    if [[ -d "$USER_CHEATSHEETS" ]]; then
+        CHEATPATH="$USER_CHEATSHEETS"
+    else
+        CHEATPATH="$CHEAT_SYS_DIR"
+    fi
 fi
 
 ##  Address of main git repository (Chris Allen Lane's version)
 if [[ -z $MAIN_REPO_ADDR ]]; then
-    MAIN_REPO_ADDR="https://github.com/chrisallenlane/cheat.git"
+    MAIN_REPO_ADDR="https://github.com/cheat/cheatsheets"
 fi
 
 ##  Address of alt git repository (my version, usually out of date)
@@ -57,7 +63,7 @@ LOCATION_1="$WEB_PATH_1/$CSFILENAME"
 function find_image_viewer
 {
     viewers=( 'eog' 'viewnior' 'feh' 'xv' 'display' 'gpicview' 'gthumb' \
-        'gwenview' )
+        'gwenview' 'okular' 'atril' )
 
     for v in "${viewers[@]}"; do
         if which "$v" > /dev/null; then
@@ -75,7 +81,7 @@ function find_image_viewer
 
 function find_pdf_viewer
 {
-    viewers=( 'evince' 'xpdf' 'qpdfview' 'mupdf' 'okular' )
+    viewers=( 'evince' 'xpdf' 'qpdfview' 'mupdf' 'okular' 'atril' )
 
     for v in "${viewers[@]}"; do
         if which "$v" > /dev/null; then
@@ -92,7 +98,7 @@ function find_pdf_viewer
 
 function find_editor
 {
-    editors=( 'vim' 'vi' 'nano' 'emacs' 'ed' 'ex' 'gedit' 'kate' 'geany' )
+    editors=( 'vim' 'nvim' 'vi' 'nano' 'emacs' 'ed' 'ex' 'gedit' 'kwrite' 'kate' 'geany' )
 
     for e in "${editors[@]}"; do
         if which "$e" > /dev/null; then
@@ -113,26 +119,24 @@ function print_help
     echo -e "  -k:\t\t\tGrep for keyword(s) in filenames"
     echo -e "  -g:\t\t\tGrep for keyword(s) inside the files"
     echo -e "  -G:\t\t\tSame as above, but list full paths to files"
-    echo -e "  -l or --link:\t\tLink to a file instead of copying it"
-    echo -e "  -L:\t\t\tList all cheat sheets with full paths"
+    echo -e "  -s or --link:\t\tSymlink to a file instead of copying it"
+    echo -e "  -l:\t\t\tList all cheat sheets (-L:  with full paths)"
     echo -e "  -e or --edit:\t\tEdit a cheat file using EDITOR env variable"
-    echo -e "  -a or --add:\t\tAdd file(s)"
-    echo -e "  -A:\t\t\tAdd file(s) with gzip compression"
+    echo -e "  -a or --add:\t\tAdd file[s].  (-A:  Add with gzip compression)"
     echo -e "  -h or --help:\t\tThis help screen"
-    echo -e "  -u or --update:\tUpdate cheat sheets (safe, lazy method)"
-    echo -e "  -U\t\t\tUpdate/overwrite cheat sheets (non-safe)"
-    echo -e "  --git\t\t\tUpdate with sheets from main (Python) cheat repository"
-    echo -e "  --git-alt\t\tUpdate with sheets from alt repo (mine)"
+    echo -e "  -u or --update:\tUpdate cheat via git (main repo)"
+    echo -e "  --alt-update\t\tSame as above, but using alternate repo (mine)"
+    echo -e "  --old-update\t\tUpdate using the old method, often out of date"
     echo -e "  --version\t\tPrint version and author info"
 
     echo -e "\nExamples:"
     echo -e "  cheat tar:\t\tDisplay cheat sheet for tar"
     echo -e "  cheat -a FILE:\tAdd FILE to cheat sheet directory"
     echo -e "  cheat -a *.txt:\tAdd all .txt files in pwd to cheat directory"
-    echo -e "  cheat -k KEYWORD:\tGrep for all filenames containing KEYWORD\n"
+    echo -e "  cheat -u\t\tUpdate cheat sheets using git (main repo)\n"
 
-    echo "By default, cheat sheets are kept in the ~/.cheat directory.  See the"
-    echo -e "README file for more details."
+    echo "By default, files are kept in the ~/.local/share/cheat/cheatsheets"
+    echo -e "directory.  See the README file or manual page for more details."
 }
 
 function print_version
@@ -163,10 +167,10 @@ function add_cheat_sheet
 
     ##  Add the file to the directory
     if [ ! $2 -eq 1 ]; then
-        cp -v "$1" "$DEFAULT_CHEAT_DIR/$newName"
+        cp -v "$1" "$USER_CHEATSHEETS/$newName"
     else
-        cp -v "$1" "$DEFAULT_CHEAT_DIR/$newName"
-        gzip -v -9 "$DEFAULT_CHEAT_DIR/$newName"
+        cp -v "$1" "$USER_CHEATSHEETS/$newName"
+        gzip -v -9 "$USER_CHEATSHEETS/$newName"
     fi
 }
 
@@ -181,7 +185,7 @@ function add_rich_media
     fi
 
     ##  Copy the file
-    cp -v "$1" "$DEFAULT_CHEAT_DIR/$(basename "$1")"
+    cp -v "$1" "$USER_CHEATSHEETS/$(basename "$1")"
 }
 
 
@@ -189,7 +193,7 @@ function add_rich_media
 ##  args:
 ##      $1: Whether or not to overwrite all files.  0 = update only,
 ##          1 = overwrite all files with versions in the archive
-function update_cheat_sheets
+function update_cheat_sheets_old
 {
     if [ ! -d /tmp ] || [ ! -w /tmp ]; then
         echo "ERROR:  Write access to /tmp required to update cheat sheets" 1>&2
@@ -235,9 +239,9 @@ function update_cheat_sheets
 
     ##  If we're playing it safe, update cheat dir.  Otherwise, straight copy
     if [ $1 -eq 0 ]; then
-        FILES_COPIED=$(cp -vu ./* "$DEFAULT_CHEAT_DIR" | wc -l)
+        FILES_COPIED=$(cp -vu ./* "$USER_CHEATSHEETS" | wc -l)
     else
-        FILES_COPIED=$(cp -v ./* "$DEFAULT_CHEAT_DIR" | wc -l)
+        FILES_COPIED=$(cp -v ./* "$USER_CHEATSHEETS" | wc -l)
     fi
 
     ##  Go back to where the user started, remove temp dir and all its contents
@@ -266,6 +270,9 @@ function update_cheat_sheets_git
         exit 1
     fi
 
+    ##  Let the user know what's up
+    echo -e "Updating cheatsheets repository..."
+
     ##  Create temporary directory and change over to it
     TEMP_DIR=$(mktemp -d)
     CUR_LOC=$PWD
@@ -276,17 +283,13 @@ function update_cheat_sheets_git
         git clone "$MAIN_REPO_ADDR" &> /dev/null
 
         ##  Update the cheat sheets
-        CPD=$(cp -vu "./cheat/cheat/cheatsheets/"* "$DEFAULT_CHEAT_DIR" | wc -l)
-
-        ##  Subract one for __init__.py
-        CPD=$(( $CPD - 1 ))
-        rm "$DEFAULT_CHEAT_DIR/__init__.py"
+        CPD=$(cp -vu "./cheatsheets/"* "$USER_CHEATSHEETS" | wc -l)
 
     elif [[ $1 -eq 1 ]]; then
         git clone "$ALT_REPO_ADDR" &> /dev/null
 
         ##  Update the sheets
-        CPD=$(cp -vu "./cheat/data/"* "$DEFAULT_CHEAT_DIR" | wc -l)
+        CPD=$(cp -vu "./cheat/data/cheatsheets"* "$USER_CHEATSHEETS" | wc -l)
     fi
 
     ##  Finish up
@@ -334,6 +337,57 @@ function grepper
 }
 
 
+##  Function to determine which pager (if any) we're using
+##  Note that if they've already set CHEAT_PAGER, this is ignored
+##
+##  Args:
+##      1   Path to the cheat sheet
+function get_pager {
+    if [[ -z "$CHEAT_PAGER" ]]; then
+        if [[ "$(wc -l "$1" | cut -f1 -d ' ')" -gt "$LINES" ]]; then
+            PAGERS=( 'less' 'more' 'cat' )
+            for P in "${PAGERS[@]}"; do
+                if which "$P" > /dev/null; then
+                    export CHEAT_PAGER="$P"
+                    break
+                fi
+            done
+        else
+            export CHEAT_PAGER='cat'
+        fi
+    fi
+}
+
+##  Basically, this function determines whether we're just dumping to STDOUT or
+##  using a pager
+function view_text_file {
+
+    if file -bL "$1" | grep text > /dev/null; then
+        ##  Determine which pager we're using
+        get_pager "$1"
+
+        ##  View the file
+        "$CHEAT_PAGER" "$1"
+
+    elif file -bL "$1" | grep gzip > /dev/null; then
+
+        ##  Make a temp file, we're cheating here
+        TMP_CHEAT="$(mktemp)"
+
+        ##  Write to the temp file, then check its size to determine pager
+        gunzip --stdout "$1" >> "$TMP_CHEAT"
+        get_pager "$TMP_CHEAT"
+
+        ##  Read the file
+        "$CHEAT_PAGER" "$TMP_CHEAT"
+
+        ##  Remove the temp file
+        rm "$TMP_CHEAT"
+    fi
+
+
+}
+
 ##  VIEW FILE
 ##      args:
 ##          1   The full file name, including path
@@ -341,9 +395,9 @@ function view_file
 {
     ##  Text files
     if file -bL "$1" | grep text > /dev/null; then
-        "$CHEAT_TEXT_VIEWER" "$1"
+        view_text_file "$1"
     elif file -bL "$1" | grep gzip > /dev/null; then
-        gunzip --stdout "$dirName/$fileName" | "$CHEAT_TEXT_VIEWER" >& 1
+        view_text_file "$1"
 
     ##  Image files
     elif file -bL "$1" | grep image > /dev/null; then
@@ -359,6 +413,39 @@ function view_file
         fi
         (nohup $CHEAT_PDF_VIEWER "$1" &) &> /dev/null
     fi
+
+}
+
+##  Creates the user cheat directory if it doesn't already exist, or aborts
+function cheat_dir_check {
+    if [[ ! -d "$USER_CHEATSHEETS" ]]; then
+        mkdir -pv "$USER_CHEATSHEETS"
+    else
+        return
+    fi
+
+    if [[ ! -d "$USER_CHEATSHEETS" ]]; then
+        echo "ERROR:  Cannot create directory '$USER_CHEATSHEETS'.  Aborting" 1>&2
+        exit 1
+    fi
+
+}
+
+
+##  List cheat sheets
+##
+##  Args:
+##      1   Use full paths (0 = no, 1 = yes)
+function list_cheat_sheets {
+    echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
+        ls "$DIR" | while read LINE; do
+            if [[ $1 -eq 0 ]]; then
+                echo "$LINE"
+            else
+                echo "${DIR}/${LINE}"
+            fi
+        done
+    done
 
 }
 
@@ -386,40 +473,44 @@ fi
 ##  Check to make sure that their cheat directory exists.  If it does, great.
 ##  If not, exit and tell them.
 if [ ! -n "$CHEATPATH" ]; then
-    if [ ! -d "$CHEAT_SYS_DIR" ] && [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
+    if [ ! -d "$CHEAT_SYS_DIR" ] && [ ! -d "$USER_CHEATSHEETS" ]; then
         echo "ERROR:  No cheat directory found." 1>&2
         echo -e "\tConsult the help (cheat -h) for more info" 1>&2
         exit 1
     else
-        cp -r "$CHEAT_SYS_DIR" "$DEFAULT_CHEAT_DIR"
-        CHEATPATH="$DEFAULT_CHEAT_DIR"
-        if [ ! -d "$DEFAULT_CHEAT_DIR" ]; then
-            echo "ERROR:  Cannot write to $DEFAULT_CHEAT_DIR" 1>&2
+        cp -r "$CHEAT_SYS_DIR" "$USER_CHEATSHEETS"
+        CHEATPATH="$USER_CHEATSHEETS"
+        if [ ! -d "$USER_CHEATSHEETS" ]; then
+            echo "ERROR:  Cannot write to $USER_CHEATSHEETS" 1>&2
             exit 1
         fi
     fi
 fi
 
 ##  If they want to update their cheat sheets (safe mode)
-if [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
-    update_cheat_sheets 0
+if [ "$1" = "--old-update" ]; then
+    cheat_dir_check
+    update_cheat_sheets_old 0
     exit 0
 fi
 
 ##  If they want to update cheat sheets (non-safe mode)
-if [ "$1" = "-U" ]; then
-    update_cheat_sheets 1
+if [ "$1" = "--old-update-unsafe" ]; then
+    cheat_dir_check
+    update_cheat_sheets_old 1
     exit 0
 fi
 
 ##  If they want to update using git (main repo)
-if [[ "$1" = "--git" ]]; then
+if [[ "$1" = "-u" ]] || [[ "$1" = "--update" ]]; then
+    cheat_dir_check
     update_cheat_sheets_git 0
     exit 0
 fi
 
 ##  Same, but alt repo
-if [[ "$1" = "--git-alt" ]]; then
+if [[ "$1" = "--alt-update" ]]; then
+    cheat_dir_check
     update_cheat_sheets_git 1
     exit 0
 fi
@@ -493,7 +584,7 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ]; then
 
         ##  If we didn't get any hits, create one in default dir
         if [[ $existing -eq 0 ]]; then
-            filesToEdit+=("${DEFAULT_CHEAT_DIR}/${arg}")
+            filesToEdit+=("${USER_CHEATSHEETS}/${arg}")
         fi
 
     done
@@ -564,7 +655,7 @@ fi
 
 
 ##  If they want to link something
-if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
+if [[ "$1" = "-s" ]] || [[ "$1" = "--link" ]]; then
     if [[ $# -lt 2 ]]; then
         echo "ERROR:  No files specified" 1>&2
         exit 1
@@ -572,7 +663,7 @@ if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
 
     for arg in "${@:2}"; do
         if [[ -e "$arg" ]]; then
-            ln -sv "$(readlink -f "$arg")" "$DEFAULT_CHEAT_DIR"
+            ln -sv "$(readlink -f "$arg")" "$USER_CHEATSHEETS"
         fi
     done
 
@@ -580,14 +671,15 @@ if [[ "$1" = "-l" ]] || [[ "$1" = "--link" ]]; then
 fi
 
 
-##  List everything with full paths
-if [[ "$1" = "-L" ]]; then
-    echo "$CHEATPATH" | sed 's/:/\n/g' | while read DIR; do
-        ls "$DIR" | while read LINE; do
-            echo "${DIR}/${LINE}"
-        done
-    done
+##  List everything without full paths
+if [[ "$1" = "-l" ]] || [[ "$1" = "--list" ]]; then
+    list_cheat_sheets 0
+    exit 0
+fi
 
+##  List everything with full paths
+if [[ "$1" = "-L" ]] || [[ "$1" = "--list-full" ]]; then
+    list_cheat_sheets 1
     exit 0
 fi
 
@@ -601,11 +693,11 @@ while read DIR; do
     ##  If we hit an 'exact' match
     if [[ -e "$DIR/$1" ]]; then
         echo -e "$1\n"
-        "$CHEAT_TEXT_VIEWER" "$DIR/$1"
+        view_file "$DIR/$1"
         exit 0
     elif [[ -e "$DIR/${1}.gz" ]]; then
         echo -e "$1\n"
-        gunzip --stdout "$DIR/${1}.gz" | "$CHEAT_TEXT_VIEWER" >& 1
+        view_file "$DIR/${1}.gz"
         exit 0
     fi
 

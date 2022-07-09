@@ -13,7 +13,7 @@ DATA=data
 MANPATH=$(PREFIX)/share/man/man1
 MANFILE=cheat.1.gz
 DATAPATH=$(PREFIX)/share/cheat
-SHEETPATH=$(DATAPATH)/sheets
+SHEETPATH=$(DATAPATH)/cheatsheets
 
 install:
 	install -D -m 0755 $(SRC)/$(SRCFILE) $(PREFIX)/bin/$(DESTFILE)

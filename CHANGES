@@ -54,3 +54,10 @@
 2018-09-18  1.3     Updated sheets, and added a function to draw sheet updates
                     directly from either Chris Allen Lane's repository or this
                     one.
+
+2022-07-09  1.4     Updated sheets, fixed broken update functions, text viewer
+                    now uses a pager ('less' specifically) if the sheet being
+                    read has more lines than the terminal.  Also changed the
+                    user cheatsheet directory to
+                    $HOME/.local/share/cheat/cheatsheets, since that seems to be
+                    better practice nowadays.
